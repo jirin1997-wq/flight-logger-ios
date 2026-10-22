@@ -44,7 +44,7 @@ final class NavigationTests: XCTestCase {
 
     func testNearbyListIsSortedNearestFirst() {
         let db = AirportDatabase(airports: [
-            airfield("FAR", 50.6, 14.0),    // ~67 km
+            airfield("FAR", 50.45, 14.0),   // ~50 km, inside the 60 km cap
             airfield("NEAR", 50.0, 14.0),   // here
             airfield("MID", 50.2, 14.0),    // ~22 km
         ])

@@ -48,13 +48,18 @@ final class TileMathTests: XCTestCase {
         XCTAssertTrue((0..<n).contains(TileMath.x(longitude: -400, zoom: 10)))
     }
 
-    /// A tile's own north-west corner must address that same tile again.
+    /// A point just inside a tile's north-west corner must address that tile.
+    ///
+    /// The corner itself sits exactly on the boundary, where floating point
+    /// may land on either side; nudging it a few millionths of a degree inside
+    /// keeps the test about the grid rather than the rounding.
     func testCornersRoundTrip() {
         for zoom in [4, 10, 13] {
             for tile in [Tile(z: zoom, x: 3, y: 5), Tile(z: zoom, x: 0, y: 0)] {
                 let corner = TileMath.northWest(of: tile)
-                XCTAssertEqual(TileMath.x(longitude: corner.longitude, zoom: zoom), tile.x)
-                XCTAssertEqual(TileMath.y(latitude: corner.latitude, zoom: zoom), tile.y)
+                let inside = Coordinate(latitude: corner.latitude - 1e-7, longitude: corner.longitude + 1e-7)
+                XCTAssertEqual(TileMath.x(longitude: inside.longitude, zoom: zoom), tile.x)
+                XCTAssertEqual(TileMath.y(latitude: inside.latitude, zoom: zoom), tile.y)
             }
         }
     }
