@@ -54,6 +54,9 @@ struct TrackBuffer: Equatable, Sendable {
         }
         if let newest, kept.last != newest { kept.append(newest) }
         points = kept
-        resolution *= 2
+        // Doubling without a ceiling traps on Int overflow after about 63 passes
+        // (a debug build crashes; a release build wraps to nonsense). 2^52 fixes
+        // per kept point is already far beyond any flight.
+        resolution = min(resolution * 2, 1 << 52)
     }
 }
