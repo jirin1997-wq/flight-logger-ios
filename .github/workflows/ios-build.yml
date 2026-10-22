@@ -30,7 +30,7 @@ jobs:
           xcodebuild build \
             -project FlightLogger.xcodeproj \
             -scheme FlightLogger \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             | tail -200
@@ -38,9 +38,12 @@ jobs:
       - name: Run the unit tests
         run: |
           set -o pipefail
+          # The runner image changes its simulators; take the first iPhone it has.
+          DEVICE=$(xcrun simctl list devices available | sed -n -E 's/^ *(iPhone[^(]*[^ (]) \(.*/\1/p' | head -1)
+          echo "Testing on: $DEVICE"
           xcodebuild test \
             -project FlightLogger.xcodeproj \
             -scheme FlightLogger \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,name=$DEVICE" \
             CODE_SIGNING_ALLOWED=NO \
             | tail -300
