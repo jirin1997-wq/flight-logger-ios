@@ -109,7 +109,7 @@ struct BaroReference: Equatable, Sendable {
 /// are easy to state and easy to break. A reading that arrives after a long
 /// stall says nothing about the current climb — dividing a metre of drift by
 /// half a second of assumed gap would invent a rate the aircraft never had.
-struct BaroRate: Equatable, Sendable {
+struct BaroRate: Sendable {
 
     /// Readings closer together than this are noise; further apart, the
     /// barometer stalled and the pair no longer describes one climb.

@@ -26,6 +26,7 @@ jobs:
 
       - name: Build for the simulator
         run: |
+          set -o pipefail
           xcodebuild build \
             -project FlightLogger.xcodeproj \
             -scheme FlightLogger \
@@ -36,6 +37,7 @@ jobs:
 
       - name: Run the unit tests
         run: |
+          set -o pipefail
           xcodebuild test \
             -project FlightLogger.xcodeproj \
             -scheme FlightLogger \

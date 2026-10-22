@@ -52,13 +52,15 @@ final class FlightRecorder: ObservableObject {
     init(
         store: FlightStore,
         settings: AppSettings,
-        location: LocationService = LocationService(),
-        motionService: MotionService = MotionService()
+        location: LocationService? = nil,
+        motionService: MotionService? = nil
     ) {
+        // Created here, not in the default arguments: a default is evaluated
+        // outside the main actor, and both services are main-actor isolated.
         self.store = store
         self.settings = settings
-        self.location = location
-        self.motionService = motionService
+        self.location = location ?? LocationService()
+        self.motionService = motionService ?? MotionService()
         // Held in a local first: Swift will not let an initializer read back a
         // stored property until every one of them has a value.
         let airports = AirportDatabase.loadDefault(userDirectory: AppPaths.root)
