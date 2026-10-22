@@ -50,6 +50,7 @@ MKTileOverlayPath MKTileOverlayRenderer MKOverlay MKOverlayRenderer MKPolyline
 MKPolylineRenderer MKPointAnnotation MKAnnotation MKAnnotationView
 MKMarkerAnnotationView MKUserLocation MKCoordinateRegion MKCoordinateSpan
 XCTestCase XCTest Self Type NSTemporaryDirectory UInt64 Int64
+MKPolygonRenderer MKPolygon MKPolygonView CLLocationCoordinate2D
 SceneKit SCNView SCNScene SCNNode SCNVector3 SCNBox SCNCapsule SCNCylinder
 SCNCamera SCNLookAtConstraint SCNMaterial SCNTransaction SCNAction
 '''.split())

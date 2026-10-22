@@ -87,6 +87,12 @@ struct TileMapView: UIViewRepresentable {
     var staticRegion: MKCoordinateRegion?
     /// The Direct-to field. Drawn dashed from the last track point.
     var target: Coordinate? = nil
+    /// The aircraft's own position, drawn as a marker.
+    var aircraft: Coordinate? = nil
+    /// The field's schematic: runways, and taxiways and aprons when supplied.
+    var diagram: AirportDiagram? = nil
+    /// Map span in degrees when the pilot zooms. Nil leaves the map where it is.
+    var zoomSpan: Double? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -104,8 +110,19 @@ struct TileMapView: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         context.coordinator.apply(source: source, files: files, allowsNetwork: allowsNetwork, to: map)
         context.coordinator.apply(track: track, to: map)
-        context.coordinator.apply(departure: departure, arrival: arrival, marked: marked, to: map)
+        context.coordinator.apply(departure: departure, arrival: arrival, marked: marked, aircraft: aircraft, to: map)
         context.coordinator.apply(target: target, from: track.last, to: map)
+        context.coordinator.apply(diagram: diagram, to: map)
+        if let zoomSpan, zoomSpan != context.coordinator.lastZoom, let last = track.last {
+            context.coordinator.lastZoom = zoomSpan
+            map.setRegion(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: last.lat, longitude: last.lon),
+                    span: MKCoordinateSpan(latitudeDelta: zoomSpan, longitudeDelta: zoomSpan)
+                ),
+                animated: true
+            )
+        }
 
         if follow, let last = track.last {
             let centre = CLLocationCoordinate2D(latitude: last.lat, longitude: last.lon)
@@ -130,6 +147,9 @@ struct TileMapView: UIViewRepresentable {
         private var polyline: MKPolyline?
         private var trackCount = 0
         private var lastCentre: CLLocationCoordinate2D?
+        private var diagramCode: String?
+        private var diagramOverlays: [MKOverlay] = []
+        var lastZoom: Double?
 
         /// Rebuilds the tile overlay only when the source actually changed —
         /// replacing it on every update would re-request every visible tile.
@@ -164,6 +184,43 @@ struct TileMapView: UIViewRepresentable {
             polyline = line
         }
 
+        /// Draws a field's schematic. Rebuilt only when the field changes, so
+        /// the overlays are not thrown away on every fix.
+        func apply(diagram: AirportDiagram?, to map: MKMapView) {
+            guard diagram?.code != diagramCode else { return }
+            diagramCode = diagram?.code
+            map.removeOverlays(diagramOverlays)
+            diagramOverlays = []
+            guard let diagram else { return }
+
+            for runway in diagram.runways {
+                var pts = runway.ends.compactMap(AirportDiagram.coordinate).map {
+                    CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                }
+                guard pts.count == 2 else { continue }
+                let line = MKPolyline(coordinates: &pts, count: pts.count)
+                line.title = "runway"
+                diagramOverlays.append(line)
+            }
+            for taxiway in diagram.taxiways {
+                var pts = taxiway.points.compactMap(AirportDiagram.coordinate).map {
+                    CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                }
+                guard pts.count > 1 else { continue }
+                let line = MKPolyline(coordinates: &pts, count: pts.count)
+                line.title = "taxiway"
+                diagramOverlays.append(line)
+            }
+            for apron in diagram.aprons {
+                var pts = apron.polygon.compactMap(AirportDiagram.coordinate).map {
+                    CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                }
+                guard pts.count > 2 else { continue }
+                diagramOverlays.append(MKPolygon(coordinates: &pts, count: pts.count))
+            }
+            map.addOverlays(diagramOverlays, level: .aboveRoads)
+        }
+
         private var directLine: MKPolyline?
 
         /// A dashed line from the aircraft to the Direct-to field, replaced
@@ -188,6 +245,7 @@ struct TileMapView: UIViewRepresentable {
             departure: Coordinate?,
             arrival: Coordinate?,
             marked: Coordinate?,
+            aircraft: Coordinate? = nil,
             to map: MKMapView
         ) {
             map.removeAnnotations(map.annotations)
@@ -195,6 +253,7 @@ struct TileMapView: UIViewRepresentable {
             if let departure { pins.append(pin(departure, "Vzlet")) }
             if let arrival { pins.append(pin(arrival, "Přistání")) }
             if let marked { pins.append(pin(marked, "Vybraný okamžik")) }
+            if let aircraft { pins.append(pin(aircraft, "Letadlo")) }
             map.addAnnotations(pins)
         }
 
@@ -219,9 +278,22 @@ struct TileMapView: UIViewRepresentable {
             if let tiles = overlay as? MKTileOverlay {
                 return MKTileOverlayRenderer(tileOverlay: tiles)
             }
+            if let polygon = overlay as? MKPolygon {
+                let renderer = MKPolygonRenderer(polygon: polygon)
+                renderer.fillColor = UIColor.systemGray.withAlphaComponent(0.25)
+                renderer.strokeColor = UIColor.systemGray
+                renderer.lineWidth = 1
+                return renderer
+            }
             if let line = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: line)
-                if line.title == "direct" {
+                if line.title == "runway" {
+                    renderer.strokeColor = UIColor.darkGray
+                    renderer.lineWidth = 9
+                } else if line.title == "taxiway" {
+                    renderer.strokeColor = UIColor.systemYellow
+                    renderer.lineWidth = 3
+                } else if line.title == "direct" {
                     renderer.strokeColor = UIColor.systemBlue
                     renderer.lineWidth = 2
                     renderer.lineDashPattern = [8, 6]
@@ -246,6 +318,9 @@ struct TileMapView: UIViewRepresentable {
             case "Vzlet":
                 view.markerTintColor = .systemGreen
                 view.glyphImage = UIImage(systemName: "airplane.departure")
+            case "Letadlo":
+                view.markerTintColor = .systemOrange
+                view.glyphImage = UIImage(systemName: "airplane")
             case "Přistání":
                 view.markerTintColor = .systemBlue
                 view.glyphImage = UIImage(systemName: "airplane.arrival")

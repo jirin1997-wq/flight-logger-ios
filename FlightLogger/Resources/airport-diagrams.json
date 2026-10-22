@@ -1,0 +1,13 @@
+[
+  {
+    "code": "LKTB",
+    "name": "Brno-Tuřany",
+    "source": "Runway ends: OurAirports dataset (public domain). Taxiways and aprons: not supplied yet.",
+    "runways": [
+      { "designator": "08/26", "ends": [[49.151299, 16.685686], [49.150379, 16.696522]] },
+      { "designator": "09/27", "ends": [[49.15290069580078, 16.675899505615234], [49.14979934692383, 16.71190071105957]] }
+    ],
+    "taxiways": [],
+    "aprons": []
+  }
+]

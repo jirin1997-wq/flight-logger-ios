@@ -16,6 +16,7 @@ struct LiveView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     @State private var presented: Sheet?
+    @State private var showMFD = false
 
     enum Sheet: String, Identifiable {
         case emergency, direct, menu
@@ -34,6 +35,9 @@ struct LiveView: View {
             .safeAreaInset(edge: .bottom) { keyBar }
             .navigationTitle(L10n.t("Letový zapisovač"))
             .navigationBarTitleDisplayMode(.inline)
+            .fullScreenCover(isPresented: $showMFD) {
+                MFDView()
+            }
             .sheet(item: $presented) { item in
                 switch item {
                 case .emergency: EmergencySheet()
@@ -422,6 +426,9 @@ struct LiveView: View {
                 recorder.isRecording ? recorder.stop() : recorder.start()
             }
             KeyButton(title: "DIRECT", tint: .orange) { presented = .direct }
+            if sizeClass == .regular {
+                KeyButton(title: "MFD", tint: .blue) { showMFD = true }
+            }
         }
         .padding(.horizontal)
         .padding(.vertical, 10)

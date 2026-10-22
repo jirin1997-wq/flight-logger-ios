@@ -86,6 +86,18 @@ extension L10n {
         "Ručně zapíše vzlet nebo přistání, když detekce něco vynechá.":
             "Logs a takeoff or landing by hand when detection misses one.",
 
+        // MFD page
+        "Zpět": "Back",
+        "Oddálit": "Zoom out",
+        "Přiblížit": "Zoom in",
+        "Sledování zapnuto": "Following",
+        "Sledovat": "Follow",
+        "Cíl není zvolen": "No target selected",
+        "Schéma pro toto letiště není.": "No diagram for this field.",
+        "Dráhy": "Runways",
+        "Schéma: zdroj": "Diagram source",
+        "Pojezdové dráhy a aprony nejsou v datech — na mapě nejsou.": "Taxiways and aprons are not in the data and are not shown.",
+        "Schéma je zjednodušené a nezobrazuje všechny prvky letiště. Pro navigaci na zemi používej oficiální mapy letiště.": "The diagram is simplified and omits some airfield elements. Use the official airfield charts for ground navigation.",
         // settings
     ]
 }
