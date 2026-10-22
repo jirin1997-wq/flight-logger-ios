@@ -54,7 +54,7 @@ struct AircraftView: UIViewRepresentable {
                 SCNTransaction.begin()
                 SCNTransaction.animationDuration = 0.3
                 // SceneKit turns counter-clockwise seen from above, so negate.
-                root.eulerAngles.y = CGFloat(-track * .pi / 180)
+                root.eulerAngles.y = Float(-track * .pi / 180)
                 SCNTransaction.commit()
             }
             setMotion(groundSpeed)
@@ -130,7 +130,7 @@ struct AircraftView: UIViewRepresentable {
             root.addChildNode(propeller)
 
             // Main gear and nose wheel.
-            for x in [CGFloat(-0.95), CGFloat(0.95)] {
+            for x: Float in [-0.95, 0.95] {
                 wheels.append(addWheel(at: SCNVector3(x, 0.22, 0.15), material: dark))
             }
             wheels.append(addWheel(at: SCNVector3(0, 0.22, -1.35), material: dark))
