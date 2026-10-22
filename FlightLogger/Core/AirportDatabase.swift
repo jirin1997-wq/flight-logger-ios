@@ -117,7 +117,6 @@ final class AirportDatabase: ObservableObject {
         self.learnedURL = learnedURL
         load(airports)
         self.learned = learned
-        self.kind = kind
     }
 
     /// Bundled seed (or a user import), plus whatever the app has learned.
